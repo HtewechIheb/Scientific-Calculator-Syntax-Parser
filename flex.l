@@ -1,11 +1,14 @@
 %{
-	#include "calc.tab.h"
+	#include <math.h>
+	#include "calculator.tab.h"
 	void yyerror(char* s);
 %}
 
 letter	[a-zA-Z]
 digit	[0-9]
-integer	[+|-]?{digit}+
+integer	[+-]?{digit}+
+exponent [eE][+-]?{digit}+
+double [+-]?{digit}*"."{digit}+{exponent}?
 whitespace [ \t\n]
 litterals [=;]
 
@@ -13,7 +16,8 @@ litterals [=;]
 "print"	{ return PRINT_COMMAND; }
 "exit"	{ return EXIT_COMMAND; }
 {letter}	{ yylval.id = yytext[0]; return IDENTIFIER; }
-{integer}	{ yylval.num = atoi(yytext); return NUMBER; }
+{integer}|{double}	{ yylval.num = atof(yytext); return NUMBER; }
+"PI"	{ yylval.num = M_PI; return NUMBER; }
 {whitespace}	;
 {litterals}	{ return yytext[0]; }
 "+" { return PLUS; }
