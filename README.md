@@ -1,3 +1,3 @@
-# Scientific Calculator Parser
+# Scientific Calculator Syntax Parser
 
-The projects is a very basic scientific calculator program parser created using Flex and Bison.
+The project consists of a lexical analyzer and a syntax parser for a very basic scientific calculator program. Technologies: Flex, Bison.
