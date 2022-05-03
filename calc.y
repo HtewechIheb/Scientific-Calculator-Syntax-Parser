@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <ctype.h>
+	#include <math.h>
 	void yyerror(char* s);
 	int yylex();
 	int symbols[52];
@@ -11,30 +12,42 @@
 
 %union { int num; char id; }
 %start line
-%token print
-%token exit_command
-%token <num> number
-%token <id> identifier
+%token PRINT_COMMAND EXIT_COMMAND PLUS MINUS MULTIPLY DIVIDE POWER OPEN_BRACKET CLOSE_BRACKET SIN COS TAN EXP LOG SQRT
+%token <num> NUMBER
+%token <id> IDENTIFIER
 %type <num> line exp term
 %type <id> assignment
+
+%left PLUS MINUS
+%left MULTIPLY DIVIDE
+%left POWER
 
 %%
 
 line: assignment ';' {;}
-	| exit_command ';' { exit(EXIT_SUCCESS); }
-	| print exp ';' { printf("Printing: %d\n", $2); }
+	| EXIT_COMMAND ';' { exit(EXIT_SUCCESS); }
+	| PRINT_COMMAND exp ';' { printf("Printing: %d\n", $2); }
 	| line assignment ';' {;}
-	| line print exp ';' { printf("Printing: %d\n", $3); }
-	| line exit_command ';' { exit(EXIT_SUCCESS); };
+	| line PRINT_COMMAND exp ';' { printf("Printing: %d\n", $3); }
+	| line EXIT_COMMAND ';' { exit(EXIT_SUCCESS); };
 
-assignment: identifier '=' exp { updateSymbolValue($1, $3); };
+assignment: IDENTIFIER '=' exp { updateSymbolValue($1, $3); };
 
 exp: term { $$ = $1; }
-	| exp '+' term { $$ = $1 + $3; }
-	| exp '-' term { $$ = $1 - $3; };
+	| exp PLUS exp { $$ = $1 + $3; }
+	| exp MINUS exp { $$ = $1 - $3; }
+	| exp MULTIPLY exp { $$ = $1 * $3; }
+	| exp DIVIDE exp { if($3 == 0) { printf("Error! Division by zero. \n"); exit(EXIT_FAILURE); } else $$ =  $1 / $3; }
+	| exp POWER exp { $$ = pow($1, $3); }
+	| SIN OPEN_BRACKET exp CLOSE_BRACKET { $$ = sin($3); }
+	| COS OPEN_BRACKET exp CLOSE_BRACKET { $$ = cos($3); }
+	| TAN OPEN_BRACKET exp CLOSE_BRACKET { $$ = tan($3); }
+	| EXP OPEN_BRACKET exp CLOSE_BRACKET { $$ = exp($3); }
+	| LOG OPEN_BRACKET exp CLOSE_BRACKET { if($3 < 0) { printf("Error! Log of non strictly positive number. \n"); exit(EXIT_FAILURE); } $$ = log($3); }
+	| SQRT OPEN_BRACKET exp CLOSE_BRACKET { if($3 < 0) { printf("Error! Square root of negative number. \n"); exit(EXIT_FAILURE); } else $$ = sqrt($3); };
 	
-term: number { $$ = $1; }
-	| identifier { $$ = symbolValue($1); };
+term: NUMBER { $$ = $1; }
+	| IDENTIFIER { $$ = symbolValue($1); };
 	
 %%
 
